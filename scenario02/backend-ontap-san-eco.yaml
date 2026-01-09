@@ -1,0 +1,14 @@
+apiVersion: trident.netapp.io/v1
+kind: TridentBackendConfig
+metadata:
+  name: backend-ontap-san-economy
+  namespace: <trident-namespace>
+spec:
+  version: 1
+  backendName: san-economy
+  useRest: false
+  storageDriverName: ontap-san-economy
+  managementLIF: <ip of svm mgmt lif>
+  useCHAP: true
+  credentials:
+    name: secret-svm
