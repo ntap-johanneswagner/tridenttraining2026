@@ -35,7 +35,7 @@ After this, we can tell Helm to install the operator.
 It's not unusual that customers don't allow to access public repositorys and have their own image registry. While we can access public registries in LoD, we have to fight with the Docker image pull rate limitation. Due to this, we are also working with a private registry, the necessary images are already cached there and the secret to access it is also created. 
 The default command to install trident without any customization like private registry is looking like this:
 
-helm install <name> netapp-trident/trident-operator --version 100.2510.0 --create-namespace --namespace <trident-namespace>
+helm install `<name>` netapp-trident/trident-operator --version 100.2510.0 --create-namespace --namespace `<trident-namespace>`
 
 
 `<name>` will be the name of our release, usually we just call it "trident"  
