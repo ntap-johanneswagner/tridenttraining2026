@@ -311,6 +311,12 @@ kubectl patch -n resize pvc iscsistorage -p '{"spec":{"resources":{"requests":{"
 
 Note: This can take some seconds as not only the pvc needs to be resized but also the filesystem needs to be adjusted. 
 
+Let's wait a little bit an check, sooner or later you should see also the iscsistorage beeing increased:
+
+```console
+kubectl exec -n resize $(kubectl get pod -n resize -o name) -- df -h /iscsistorage
+```
+
 So increasing is easy, what about decreasing? Try to set your volume to a lower space, use the edit or the patch mechanism from above.
 ___
 
@@ -330,9 +336,9 @@ Congratulations - You configured Trident and created your first applications tha
 :trident::trident::trident:
 
 ## :trident: Scenario 05 - Snapshots here and there...
-**Remember: All required files are in the folder */root/tridentraining2025/scenario04* please ensure that you are in this folder now. You can do this with the command** 
+**Remember: All required files are in the folder */root/tridentraining2026/scenario05* please ensure that you are in this folder now. You can do this with the command** 
 ```console
-cd /root/tridentraining2025/scenario04
+cd /root/tridentraining2026/scenario05
 ```
 
 The following will walk you through the management of snapshots with a simple lightweight BusyBox container.
@@ -472,12 +478,7 @@ As K8s based applications become more and more important, people ask the mean qu
 
 Since October 2024, Trident has a small add-on, called Trident protect. This little application is meant to do k8s native backup & DR.
 
-We do this again utilizing a private registry. To access it we need a secret again, lets creat this first:
-
-```console
-kubectl create ns trident-protect
-kubectl create secret docker-registry regcred --docker-username=registryuser --docker-password=Netapp1! -n trident-protect --docker-server=registry.demo.netapp.com
-```
+We do this again utilizing a private registry. This all has been prepared already
 
 We are going to use parameters gathered in the trident_protect_helm_values.yaml file.
 Now we can add the helm repository and install trident protect:
@@ -492,6 +493,8 @@ helm install trident-protect netapp-trident-protect/trident-protect --set cluste
 After a very short time you should be able to see Trident protect being installed successfully. 
 ```console
 kubectl get pods -n trident-protect
+```
+```console
 NAME                                                           READY   STATUS    RESTARTS   AGE
 trident-protect-controller-manager-6454f4776f-6ls7v            2/2     Running   0          1h
 ```
@@ -517,7 +520,9 @@ EOT
 The CLI will appear as a new sub-menu in the _tridentctl_ tool.  
 ```console
 tridentctl-protect version
-25.06.0
+```
+```console
+25.10.0
 ```
 
 ## :trident: Scenario 07 - Trident protect initial configuration
@@ -620,19 +625,19 @@ To keep it simple, we will work with tridentctl-protect in this scenario.
 The first step is to tell Trident protect what is our application. We will use the example app we used for testing the ontap-nas driver.
 
 ```console
-tridentctl-protect create app nasapp --namespaces 'nasapp(app=busybox)' -n nasapp
+tridentctl-protect create app sanecoapp --namespaces 'sanecoapp(app=busybox)' -n sanecoapp
 ```
 You can verify the status with the following command:
 ```console
-tridentctl-protect get app -n nasapp
+tridentctl-protect get app -n sanecoapp
 ```
 If everything is successfull it should look like this:
 ```console
-+--------+------------+-------+-----+
-|  NAME  | NAMESPACES | STATE | AGE |
-+--------+------------+-------+-----+
-| nasapp | nasapp     | Ready | 9s  |
-+--------+------------+-------+-----+
++-----------+---------------+-------+-----+
+|  NAME     | NAMESPACES    | STATE | AGE |
++-----------+---------------+-------+-----+
+| sanecoapp | sanecoapp     | Ready | 9s  |
++-----------+---------------+-------+-----+
 ```
 
 ## B. Snapshot creation  
@@ -643,49 +648,49 @@ This is potentially done in conjunction with _hooks_ in order to interact with t
 
 Let's create a snapshot:  
 ```console
-tridentctl-protect create snapshot nasappsnap --app nasapp --appvault ontap-vault -n nasapp
+tridentctl-protect create snapshot sanecoappsnap --app sanecoapp --appvault ontap-vault -n sanecoapp
 ```
 
 We can list now the Snapshot  
 
 ```console
-tridentctl-protect get snap -n nasapp
+tridentctl-protect get snap -n sanecoapp
 ```
 
 ```console
-+------------+--------+----------------+-----------+-------+-----+
-|    NAME    |  APP   | RECLAIM POLICY |   STATE   | ERROR | AGE |
-+------------+--------+----------------+-----------+-------+-----+
-| nasappsnap | nasapp | Delete         | Completed |       | 10s |
-+------------+--------+----------------+-----------+-------+-----+
++---------------+-----------+----------------+-----------+-------+-----+
+|    NAME       |  APP      | RECLAIM POLICY |   STATE   | ERROR | AGE |
++---------------+-----------+----------------+-----------+-------+-----+
+| sanecoappsnap | sanecoapp | Delete         | Completed |       | 10s |
++---------------+-----------+----------------+-----------+-------+-----+
 ```
 
 As our app has 1 PVC, you should find 1 Volume Snapshots:  
 ```console
-kubectl get vs -n nasapp
+kubectl get vs -n sanecoapp
 ```
 ```console
 ‌NAME                                                                                     READYTOUSE   SOURCEPVC   SOURCESNAPSHOTCONTENT   RESTORESIZE   SNAPSHOTCLASS    SNAPSHOTCONTENT                                    CREATIONTIME   AGE
-snapshot-32120d0a-3772-4cf9-88a5-3fe126883d15-pvc-667f2e5a-77d5-4b67-bb55-ea3efa6749e1   true         pvcnas                              304Ki         csi-snap-class   snapcontent-49668534-3a05-4218-8e84-94ee96a46482   79s            79s
+snapshot-32120d0a-3772-4cf9-88a5-3fe126883d15-pvc-667f2e5a-77d5-4b67-bb55-ea3efa6749e1   true         pvcsaneco                           304Ki         csi-snap-class   snapcontent-49668534-3a05-4218-8e84-94ee96a46482   79s            79s
 ```
 
 Browsing through the bucket, you will also find the content of the snapshot (the metadata):  
 ```console
-SNAPPATH=$(kubectl get snapshot nasappsnap -n nasapp -o=jsonpath='{.status.appArchivePath}')
+SNAPPATH=$(kubectl get snapshot nasappsnap -n sanecoapp -o=jsonpath='{.status.appArchivePath}')
 aws s3 ls --no-verify-ssl --endpoint-url http://192.168.0.230 s3://s3lod/$SNAPPATH --recursive  
 ```
 ```console
-2025-10-24 14:51:22       1310 nasapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_nasappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/application.json
-2025-10-24 14:51:22          3 nasapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_nasappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/exec_hooks.json
-2025-10-24 14:51:30       2545 nasapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_nasappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/post_snapshot_execHooksRun.json
-2025-10-24 14:51:28       2568 nasapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_nasappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/pre_snapshot_execHooksRun.json
-2025-10-24 14:51:22       2515 nasapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_nasappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/resource_backup.json
-2025-10-24 14:51:26       7127 nasapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_nasappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/resource_backup.tar.gz
-2025-10-24 14:51:26       4122 nasapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_nasappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/resource_backup_summary.json
-2025-10-24 14:51:30       4654 nasapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_nasappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/snapshot.json
-2025-10-24 14:51:30       1074 nasapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_nasappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/volume_snapshot_classes.json
-2025-10-24 14:51:30       1870 nasapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_nasappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/volume_snapshot_contents.json
-2025-10-24 14:51:30       2220 nasapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_nasappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/volume_snapshots.json
+2025-10-24 14:51:22       1310 sanecoapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_sanecoappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/application.json
+2025-10-24 14:51:22          3 sanecoapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_sanecoappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/exec_hooks.json
+2025-10-24 14:51:30       2545 sanecoapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_sanecoappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/post_snapshot_execHooksRun.json
+2025-10-24 14:51:28       2568 sanecoapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_sanecoappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/pre_snapshot_execHooksRun.json
+2025-10-24 14:51:22       2515 sanecoapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_sanecoappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/resource_backup.json
+2025-10-24 14:51:26       7127 sanecoapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_sanecoappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/resource_backup.tar.gz
+2025-10-24 14:51:26       4122 sanecoapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_sanecoappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/resource_backup_summary.json
+2025-10-24 14:51:30       4654 sanecoapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_sanecoappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/snapshot.json
+2025-10-24 14:51:30       1074 sanecoapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_sanecoappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/volume_snapshot_classes.json
+2025-10-24 14:51:30       1870 sanecoapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_sanecoappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/volume_snapshot_contents.json
+2025-10-24 14:51:30       2220 sanecoapp_1adc96ae-be9f-41fb-9aee-4a50eba2a5ed/snapshots/20251024145122_sanecoappsnap_32120d0a-3772-4cf9-88a5-3fe126883d15/volume_snapshots.json
 ```
 
 ## C. Backup creation  
@@ -697,15 +702,15 @@ Creating an app backup consists in several steps:
 This is also potentially done in conjunction with _hooks_ in order to interact with the app. This part is not covered in this chapter.  
 The duration of the backup process takes a bit more time compared to the snapshot, as data is also copied to the bucket.  
 ```console
-tridentctl-protect create backup nasappbkp1 --app nasapp --snapshot nasappsnap --appvault ontap-vault  -n nasapp
-tridentctl-protect get backup -n nasapp
+tridentctl-protect create backup sanecoappbkp1 --app sanecoapp --snapshot sanecoappsnap --appvault ontap-vault  -n sanecoapp
+tridentctl-protect get backup -n sanecoapp
 ```
 ```console
-+------------+--------+----------------+-----------+-------+-------+
-|    NAME    |  APP   | RECLAIM POLICY |   STATE   | ERROR |  AGE  |
-+------------+--------+----------------+-----------+-------+-------+
-| nasappbkp1 | nasapp | Retain         | Completed |       | 2m12s |
-+------------+--------+----------------+-----------+-------+-------+
++---------------+-----------+----------------+-----------+-------+-------+
+|    NAME       |  APP      | RECLAIM POLICY |   STATE   | ERROR |  AGE  |
++---------------+-----------+----------------+-----------+-------+-------+
+| sanecoappbkp1 | sanecoapp | Retain         | Completed |       | 2m12s |
++---------------+-----------+----------------+-----------+-------+-------+
 ```
 If you check the bucket, you will see more subfolders appear:  
 ```console
@@ -731,11 +736,11 @@ cat << EOF | kubectl apply -f -
 apiVersion: protect.trident.netapp.io/v1
 kind: Schedule
 metadata:
-  name: nasapp-sched
-  namespace: nasapp
+  name: sanecoapp-sched
+  namespace: sanecoapp
 spec:
   appVaultRef: ontap-vault
-  applicationRef: nasapp
+  applicationRef: sanecoapp
   backupRetention: "3"
   dataMover: Kopia
   enabled: true
@@ -745,15 +750,15 @@ spec:
     RRULE:FREQ=MINUTELY;INTERVAL=5
   snapshotRetention: "3"
 EOF
-tridentctl-protect get schedule -n nasapp
+tridentctl-protect get schedule -n sanecoapp
 ```
 ```console
-+--------------+--------+--------------------------------+---------+-------+-------+-----+
-|     NAME     |  APP   |            SCHEDULE            | ENABLED | STATE | ERROR | AGE |
-+--------------+--------+--------------------------------+---------+-------+-------+-----+
-| nasapp-sched | nasapp | DTSTART:20250106T000100Z       | true    |       |       | 41s |
-|              |        | RRULE:FREQ=MINUTELY;INTERVAL=5 |         |       |       |     |
-+--------------+--------+--------------------------------+---------+-------+-------+-----+
++-----------------+-----------+--------------------------------+---------+-------+-------+-----+
+|     NAME        |  APP      |            SCHEDULE            | ENABLED | STATE | ERROR | AGE |
++-----------------+-----------+--------------------------------+---------+-------+-------+-----+
+| sanecoapp-sched | sanecoapp | DTSTART:20250106T000100Z       | true    |       |       | 41s |
+|                 |           | RRULE:FREQ=MINUTELY;INTERVAL=5 |         |       |       |     |
++-----------------+-----------+--------------------------------+---------+-------+-------+-----+
 ```
 ## :trident: Scenario 07 - Restoring an application
 
@@ -771,43 +776,43 @@ Let's dig into some of those possibilities:
 
 Let's first delete the content of one of the volume mounted on the pod (_nas_).  
 ```console
-kubectl exec -n nasapp $(kubectl get pod -n nasapp -o name) -- rm -f /nas/test.txt
-kubectl exec -n nasapp $(kubectl get pod -n nasapp -o name) -- more /nas/test.txt
+kubectl exec -n sanecoapp $(kubectl get pod -n sanecoapp -o name) -- rm -f /saneco/test.txt
+kubectl exec -n sanecoapp $(kubectl get pod -n sanecoapp -o name) -- more /saneco/test.txt
 ```
 ```console
-tridentctl-protect create sir nasappsir1 --snapshot nasapp/nasappsnap --resource-filter-include='[{"labelSelectors":["volume=volnas"]}]' -n nasapp
+tridentctl-protect create sir sanecoappsir1 --snapshot sanecoapp/sanecoappsnap --resource-filter-include='[{"labelSelectors":["volume=volsaneco"]}]' -n sanecoapp
 ```
 The process will take some moment, you can check for the progress with the following commands. You will see that the pvc and the pod will disappear as we are going to restore them. 
 ```console
-tridentctl-protect get sir -n nasapp; kubectl -n nasapp get pod,pvc
+tridentctl-protect get sir -n sanecoapp; kubectl -n sanecoapp get pod,pvc
 ```
 If everything was successful you should see an output, similar to this:
 
 ```console
-+------------+-------------+-----------+-------+-------+
-|    NAME    |  APPVAULT   |   STATE   | ERROR |  AGE  |
-+------------+-------------+-----------+-------+-------+
-| nasappsir1 | ontap-vault | Completed |       | 1m31s |
-+------------+-------------+-----------+-------+-------+
++---------------+-------------+-----------+-------+-------+
+|    NAME       |  APPVAULT   |   STATE   | ERROR |  AGE  |
++---------------+-------------+-----------+-------+-------+
+| sanecoappsir1 | ontap-vault | Completed |       | 1m31s |
++---------------+-------------+-----------+-------+-------+
 NAME                          READY   STATUS    RESTARTS   AGE
 pod/busybox-6db6b5964-qwhv2   1/1     Running   0          25s
 
-NAME                           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
-persistentvolumeclaim/pvcnas   Bound    pvc-667f2e5a-77d5-4b67-bb55-ea3efa6749e1   1Gi        RWO            sc-nas         <unset>                 28s
+NAME                              STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/pvcsaneco   Bound    pvc-667f2e5a-77d5-4b67-bb55-ea3efa6749e1   1Gi        RWO            sc-saneco      <unset>                 28s
 ```
 
 # check result
 ```console
-kubectl exec -n nasapp $(kubectl get pod -n nasapp -o name) -- ls /nas/
-kubectl exec -n nasapp $(kubectl get pod -n nasapp -o name) -- more /nas/test.txt
+kubectl exec -n sanecoapp $(kubectl get pod -n sanecoapp -o name) -- ls /saneco/
+kubectl exec -n sanecoapp $(kubectl get pod -n sanecoapp -o name) -- more /saneco/test.txt
 ```
 
 ## B. In-place restore of a backup 
 
 For this test, let's first delete the DEPLOY & the 2 PVC from the namespace:  
 ```console
-kubectl delete -n nasapp deploy busybox
-kubectl delete -n nasapp pvc --all
+kubectl delete -n sanecoapp deploy busybox
+kubectl delete -n sanecoapp pvc --all
 ```
 => "Ohlalalalalala, I deleted my whole app! what can I do?!"  
 
@@ -815,38 +820,38 @@ Easy answer, you restore everything from a backup!
 
 Let's see that in action:  
 ```console
-tridentctl-protect create bir nasappbir -n nasapp --backup nasapp/nasappbkp1
+tridentctl-protect create bir sanecoappbir -n sanecoapp --backup sanecoapp/sanecoappbkp1
 ```
 ```console
-tridentctl-protect get bir -n nasapp
+tridentctl-protect get bir -n sanecoapp
 ```
 This again will take some time.
 ```console
-+-----------+-------------+---------+-------+-----+
-|   NAME    |  APPVAULT   |  STATE  | ERROR | AGE |
-+-----------+-------------+---------+-------+-----+
-| nasappbir | ontap-vault | Running |       | 13s |
-+-----------+-------------+---------+-------+-----+
++--------------+-------------+---------+-------+-----+
+|   NAME       |  APPVAULT   |  STATE  | ERROR | AGE |
++--------------+-------------+---------+-------+-----+
+| sanecoappbir | ontap-vault | Running |       | 13s |
++--------------+-------------+---------+-------+-----+
 ```
 
 As soon as the state changes to Completed, you should be able to see the ressources we've delete again
 
 ```console
-kubectl -n nasapp get po,pvc
+kubectl -n sanecoapp get po,pvc
 ```
 ```console
 NAME                          READY   STATUS    RESTARTS   AGE
 pod/busybox-6db6b5964-dtd79   1/1     Running   0          87s
 
-NAME                           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
-persistentvolumeclaim/pvcnas   Bound    pvc-b0d2d2b0-ba94-4016-88fb-e482818d6697   1Gi        RWO            sc-nas         <unset>                 88s
+NAME                              STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/pvcsaneco   Bound    pvc-b0d2d2b0-ba94-4016-88fb-e482818d6697   1Gi        RWO            sc-saneco      <unset>                 88s
 ```
 Our app is back, but what about the data:  
 ```console
-kubectl exec -n nasapp $(kubectl get pod -n nasapp -o name) -- more /nas/test.txt
+kubectl exec -n sanecoapp $(kubectl get pod -n sanecoapp -o name) -- more /saneco/test.txt
 ```
 ```console
-Hello little Container! Trident will care about your persistent Data that is written to a pvc utilizing the ontap-nas driver!
+Hello little Container! Trident will care about your persistent Data that is written to a pvc utilizing the ontap-san-economy driver!
 ```
 :trident::trident::trident:  
 Success! Congratulations to you, if you read this lines you are at the end of this small lab. If you went through all the tasks, you were able to install and configure Trident and Trident protect, run your first app, protect, destroy and recreate it.  
