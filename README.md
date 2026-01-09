@@ -676,7 +676,7 @@ snapshot-32120d0a-3772-4cf9-88a5-3fe126883d15-pvc-667f2e5a-77d5-4b67-bb55-ea3efa
 
 Browsing through the bucket, you will also find the content of the snapshot (the metadata):  
 ```console
-SNAPPATH=$(kubectl get snapshot nasappsnap -n sanecoapp -o=jsonpath='{.status.appArchivePath}')
+SNAPPATH=$(kubectl get snapshot sanecoappsnap -n sanecoapp -o=jsonpath='{.status.appArchivePath}')
 aws s3 ls --no-verify-ssl --endpoint-url http://192.168.0.230 s3://s3lod/$SNAPPATH --recursive  
 ```
 ```console
