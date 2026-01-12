@@ -527,7 +527,7 @@ tridentctl-protect version
 
 ## :trident: Scenario 07 - Trident protect initial configuration
 
-There are not many "administrative" tasks when it comes to Trident protect. It's installation (what we've done in Scenario04) and creating the AppVaults.
+There are not many "administrative" tasks when it comes to Trident protect. It's installation (what we've done in Scenario06) and creating the AppVaults.
 
 An AppVault is our backup target, or said differently the single source of truth when it comes to restores. We can loose everything, as long as we still have the AppVault we can start restores, even if the whole K8s Cluster and the original storage system was destroyed completely.
 
