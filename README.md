@@ -338,7 +338,7 @@ Congratulations - You configured Trident and created your first applications tha
 ## :trident: Scenario 05 - Snapshots here and there...
 **Remember: All required files are in the folder */root/tridentraining2026/scenario05* please ensure that you are in this folder now. You can do this with the command** 
 ```console
-cd /root/tridentraining2026/scenario05
+cd /root/tridenttraining2026/scenario05
 ```
 
 The following will walk you through the management of snapshots with a simple lightweight BusyBox container.
