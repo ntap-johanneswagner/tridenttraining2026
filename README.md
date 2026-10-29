@@ -35,19 +35,19 @@ After this, we can tell Helm to install the operator.
 It's not unusual that customers don't allow to access public repositorys and have their own image registry. While we can access public registries in LoD, we have to fight with the Docker image pull rate limitation. Due to this, we are also working with a private registry, the necessary images are already cached there and the secret to access it is also created. 
 The default command to install trident without any customization like private registry is looking like this:
 
-helm install `<name>` netapp-trident/trident-operator --version 100.2510.0 --create-namespace --namespace `<trident-namespace>`
+helm install `<name>` netapp-trident/trident-operator --version 100.2606.2 --create-namespace --namespace `<trident-namespace>`
 
 
 `<name>` will be the name of our release, usually we just call it "trident"  
 
-`--version`defines the version of Trident. Unfortunately Helm requires semantic versioning, while Trident uses calendaric versioning. As a workaround we modified the version of the helmchart to be 100.`<YYMM>`.`<Patch>`. The October Release of 2025 is 25.10.0, the Helm Chart Version is 100.2510.0  
+`--version`defines the version of Trident. Unfortunately Helm requires semantic versioning, while Trident uses calendaric versioning. As a workaround we modified the version of the helmchart to be 100.`<YYMM>`.`<Patch>`. The June Release of 2026 is 26.06.2, the Helm Chart Version is 100.2606.2  
 
 `<trident-namespace>`is the place where the operator and Trident will be deployed. Usually we also use "trident" here.
 
 As we want to use a private registry, we modify the command a little bit:
 
 ```console
-helm install <name> netapp-trident/trident-operator --version 100.2510.0 --create-namespace --namespace <trident-namespace> --set tridentAutosupportImage=registry.demo.netapp.com/trident-autosupport:25.10.0,operatorImage=registry.demo.netapp.com/trident-operator:25.10.0,tridentImage=registry.demo.netapp.com/trident:25.10.0,tridentSilenceAutosupport=true,windows=true,imagePullSecrets[0]=regcred
+helm install <name> netapp-trident/trident-operator --version 100.2606.2 --create-namespace --namespace <trident-namespace> --set tridentAutosupportImage=registry.demo.netapp.com/trident-autosupport:26.06.2,operatorImage=registry.demo.netapp.com/trident-operator:26.06.2,tridentImage=registry.demo.netapp.com/trident:26.06.2,tridentSilenceAutosupport=true,windows=true,imagePullSecrets[0]=regcred
 ```
 
 As soon you fired the command above (ensure that you place the right release name and namespace name!), the operator will start with the deployment. You can check this by discovering the pods in the namespace:
@@ -487,7 +487,7 @@ Now we can add the helm repository and install trident protect:
 helm repo add netapp-trident-protect https://netapp.github.io/trident-protect-helm-chart/
 helm registry login registry.demo.netapp.com -u registryuser -p Netapp1!
 
-helm install trident-protect netapp-trident-protect/trident-protect --set clusterName=lod1 --version 100.2510.0 --namespace trident-protect -f trident_protect_helm_values.yaml
+helm install trident-protect netapp-trident-protect/trident-protect --set clusterName=lod1 --version 100.2606.0 --namespace trident-protect -f trident_protect_helm_values.yaml
 ```
 
 After a very short time you should be able to see Trident protect being installed successfully. 
@@ -503,7 +503,7 @@ Trident Protect CR can be configured with YAML manifests or CLI.
 Let's install its CLI which avoids making mistakes when creating the YAML files:  
 ```console
 cd
-curl -L -o tridentctl-protect https://github.com/NetApp/tridentctl-protect/releases/download/25.10.0/tridentctl-protect-linux-amd64
+curl -L -o tridentctl-protect https://github.com/NetApp/tridentctl-protect/releases/download/26.06.0/tridentctl-protect-linux-amd64
 chmod +x tridentctl-protect
 mv ./tridentctl-protect /usr/local/bin
 
