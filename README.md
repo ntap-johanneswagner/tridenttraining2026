@@ -47,7 +47,7 @@ helm install `<name>` netapp-trident/trident-operator --version 100.2606.2 --cre
 As we want to use a private registry, we modify the command a little bit:
 
 ```console
-helm install <name> netapp-trident/trident-operator --version 100.2606.2 --create-namespace --namespace <trident-namespace> --set tridentAutosupportImage=registry.demo.netapp.com/trident-autosupport:26.06.2,operatorImage=registry.demo.netapp.com/trident-operator:26.06.2,tridentImage=registry.demo.netapp.com/trident:26.06.2,tridentSilenceAutosupport=true,windows=true,imagePullSecrets[0]=regcred
+helm install <name> netapp-trident/trident-operator --version 100.2606.2 --create-namespace --namespace <trident-namespace> --set tridentAutosupportImage=registry.demo.netapp.com/trident-autosupport:26.06.0,operatorImage=registry.demo.netapp.com/trident-operator:26.06.2,tridentImage=registry.demo.netapp.com/trident:26.06.2,tridentSilenceAutosupport=true,windows=true,imagePullSecrets[0]=regcred
 ```
 
 As soon you fired the command above (ensure that you place the right release name and namespace name!), the operator will start with the deployment. You can check this by discovering the pods in the namespace:
