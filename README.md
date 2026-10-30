@@ -35,7 +35,7 @@ After this, we can tell Helm to install the operator.
 It's not unusual that customers don't allow to access public repositorys and have their own image registry. While we can access public registries in LoD, we have to fight with the Docker image pull rate limitation. Due to this, we are also working with a private registry, the necessary images are already cached there and the secret to access it is also created. 
 The default command to install trident without any customization like private registry is looking like this:
 
-helm install `<name>` netapp-trident/trident-operator --version 100.2606.2 --create-namespace --namespace `<trident-namespace>`
+helm install `<name>` netapp-trident/trident-operator --version 100.2606.1 --create-namespace --namespace `<trident-namespace>`
 
 
 `<name>` will be the name of our release, usually we just call it "trident"  
@@ -50,7 +50,7 @@ As we want to use a private registry, we modify the command a little bit:
 helm install <name> netapp-trident/trident-operator --version 100.2606.1 --create-namespace --namespace <trident-namespace> --set tridentAutosupportImage=registry.demo.netapp.com/trident-autosupport:26.06.0,operatorImage=registry.demo.netapp.com/trident-operator:26.06.1,tridentImage=registry.demo.netapp.com/trident:26.06.1,tridentSilenceAutosupport=true,windows=true,imagePullSecrets[0]=regcred
 ```
 
-As soon you fired the command above (ensure that you place the right release name and namespace name!), the operator will start with the deployment. You can check this by discovering the pods in the namespace:
+As soon you fired the command above (ensure that you place the right release name and namespace name, usually people choose "trident" for both), the operator will start with the deployment. You can check this by discovering the pods in the namespace:
 
 ```console
 kubectl get pods -n <trident-namespace>
