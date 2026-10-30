@@ -40,14 +40,14 @@ helm install `<name>` netapp-trident/trident-operator --version 100.2606.2 --cre
 
 `<name>` will be the name of our release, usually we just call it "trident"  
 
-`--version`defines the version of Trident. Unfortunately Helm requires semantic versioning, while Trident uses calendaric versioning. As a workaround we modified the version of the helmchart to be 100.`<YYMM>`.`<Patch>`. The June Release of 2026 is 26.06.2, the Helm Chart Version is 100.2606.2  
+`--version`defines the version of Trident. Unfortunately Helm requires semantic versioning, while Trident uses calendaric versioning. As a workaround we modified the version of the helmchart to be 100.`<YYMM>`.`<Patch>`. The June Release of 2026 is 26.06.1, the Helm Chart Version is 100.2606.1  
 
 `<trident-namespace>`is the place where the operator and Trident will be deployed. Usually we also use "trident" here.
 
 As we want to use a private registry, we modify the command a little bit:
 
 ```console
-helm install <name> netapp-trident/trident-operator --version 100.2606.2 --create-namespace --namespace <trident-namespace> --set tridentAutosupportImage=registry.demo.netapp.com/trident-autosupport:26.06.0,operatorImage=registry.demo.netapp.com/trident-operator:26.06.2,tridentImage=registry.demo.netapp.com/trident:26.06.2,tridentSilenceAutosupport=true,windows=true,imagePullSecrets[0]=regcred
+helm install <name> netapp-trident/trident-operator --version 100.2606.1 --create-namespace --namespace <trident-namespace> --set tridentAutosupportImage=registry.demo.netapp.com/trident-autosupport:26.06.0,operatorImage=registry.demo.netapp.com/trident-operator:26.06.1,tridentImage=registry.demo.netapp.com/trident:26.06.1,tridentSilenceAutosupport=true,windows=true,imagePullSecrets[0]=regcred
 ```
 
 As soon you fired the command above (ensure that you place the right release name and namespace name!), the operator will start with the deployment. You can check this by discovering the pods in the namespace:
